@@ -176,3 +176,8 @@ python scripts/generate_benchmark_report.py --benchmark-dir results/my_public_da
 ```
 
 See `docs/REAL_DATA_WORKFLOW.md` for details.
+
+
+## Public-data inference notes
+
+The public-data adapter prioritizes biologically meaningful CRISPR sequence columns such as `guideSeq`, `otSeq`, `on_seq`, and `off_seq`, and activity columns such as `readFraction`. Numeric metadata fields such as mismatch counts, bulge counts, and guide specificity scores should not be inferred as sequence columns.

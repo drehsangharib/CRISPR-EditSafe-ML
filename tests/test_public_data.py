@@ -24,3 +24,20 @@ def test_infer_mapping_with_common_names():
     assert mapping.guide_col == "guide_sequence"
     assert mapping.target_col == "off_target_sequence"
     assert mapping.label_col == "label"
+
+
+def test_infer_mapping_prefers_tsai_sequence_and_activity_columns():
+    df = pd.DataFrame({
+        "name": ["Frock_EMX", "Cho_ccr5"],
+        "guideSeq": ["GAGTCCGAGCAGAAGAAGAAGGG", "AACACCAGTGAGTAGAGCGGAGG"],
+        "guideSpecScore4MM": [22, 48],
+        "otSeq": ["GAGTCTAAGCAGAAGAAGAAGAG", "AACACCAGCGAGTAGAGCGGAGG"],
+        "readFraction": [0.317, 0.427],
+        "mismatches": [2, 1],
+        "bulgeDnaMmCount": [-1, -2],
+        "guideOtSum": [0.771, 0.428],
+    })
+    mapping = infer_mapping(df)
+    assert mapping.guide_col == "guideSeq"
+    assert mapping.target_col == "otSeq"
+    assert mapping.score_col == "readFraction"

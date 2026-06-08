@@ -8,26 +8,89 @@ import pandas as pd
 
 DNA_ALLOWED = re.compile(r"[^ACGTUNacgtun_\-\.]")
 
+# Column priority is intentionally ordered from most specific to most generic.
+# This avoids real-data mistakes such as selecting numeric metadata columns like
+# "bulgeDnaMmCount" instead of sequence columns like "otSeq".
 GUIDE_CANDIDATES = [
-    "sgrna", "sgRNA", "grna", "gRNA", "guide", "guide_seq", "guide_sequence",
-    "spacer", "protospacer", "on_seq", "on_target", "ontarget", "on-target",
-    "on_target_sequence", "target_sequence", "targetsite", "target_site"
+    "guideSeq",
+    "guide_seq",
+    "guide_sequence",
+    "sgrna",
+    "sgRNA",
+    "grna",
+    "gRNA",
+    "guide",
+    "spacer",
+    "protospacer",
+    "on_seq",
+    "onSeq",
+    "on_target",
+    "ontarget",
+    "on-target",
+    "on_target_sequence",
+    "target_sequence",
+    "targetsite",
+    "target_site",
 ]
 
 TARGET_CANDIDATES = [
-    "target", "dna", "dna_seq", "dna_sequence", "offtarget", "off_target", "off-target",
-    "off_target_sequence", "offtarget_sequence", "off_seq", "off-target_sequence",
-    "candidate", "candidate_sequence", "genomic_sequence", "site_sequence"
+    "otSeq",
+    "ot_seq",
+    "offSeq",
+    "off_seq",
+    "offtargetSeq",
+    "offtarget_seq",
+    "off_target_sequence",
+    "offtarget_sequence",
+    "off-target_sequence",
+    "off_target",
+    "offtarget",
+    "off-target",
+    "candidate_sequence",
+    "candidate",
+    "genomic_sequence",
+    "site_sequence",
+    "target",
+    "dna_sequence",
+    "dna_seq",
 ]
 
 LABEL_CANDIDATES = [
-    "label", "y", "class", "active", "is_active", "validated", "is_validated",
-    "true_offtarget", "true_off_target", "observed", "detected", "activity_binary"
+    "label",
+    "y",
+    "class",
+    "active",
+    "is_active",
+    "validated",
+    "is_validated",
+    "true_offtarget",
+    "true_off_target",
+    "observed",
+    "detected",
+    "activity_binary",
 ]
 
 SCORE_CANDIDATES = [
-    "score", "activity", "indel", "indel_rate", "read_count", "reads", "crispr_net_score",
-    "CRISPR_Net_score", "cleavage_score", "editing_rate", "validated_score"
+    "readFraction",
+    "read_fraction",
+    "activity",
+    "activity_score",
+    "editing_rate",
+    "indel_rate",
+    "indel",
+    "cleavage_score",
+    "CRISPR_Net_score",
+    "crispr_net_score",
+    "otScore",
+    "ot_score",
+    "guideOtSum",
+    "guide_ot_sum",
+    "score",
+    "read_count",
+    "reads",
+    "validated_score",
+    "guideSpecScore4MM",
+    "guide_spec_score_4mm",
 ]
 
 
@@ -43,23 +106,59 @@ def _norm_col(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(name).strip().lower())
 
 
+def _is_sequence_like_name(name: str) -> bool:
+    norm = _norm_col(name)
+    negative_tokens = ["count", "score", "fraction", "gc", "sum", "mismatch", "mm", "bulge"]
+    if any(tok in norm for tok in negative_tokens):
+        return False
+    sequence_tokens = ["seq", "sequence", "target", "guide", "spacer", "protospacer", "site"]
+    return any(tok in norm for tok in sequence_tokens)
+
+
+def _sequence_like_fraction(series: pd.Series, min_len: int = 20, sample_size: int = 100) -> float:
+    sample = series.dropna().astype(str).head(sample_size)
+    if len(sample) == 0:
+        return 0.0
+    cleaned = sample.map(clean_sequence)
+    return float((cleaned.str.len() >= min_len).mean())
+
+
 def find_column(columns: Iterable[str], candidates: Iterable[str]) -> str | None:
+    """Find a column by exact normalized match first, then safe partial match.
+
+    Partial matching intentionally avoids very generic candidates such as "dna" or
+    "score" dominating more biologically meaningful columns.
+    """
     col_list = list(columns)
     norm_to_original = {_norm_col(c): c for c in col_list}
+
+    # 1. Exact normalized match in candidate priority order.
     for candidate in candidates:
         key = _norm_col(candidate)
         if key in norm_to_original:
             return norm_to_original[key]
-    for original in col_list:
-        norm = _norm_col(original)
-        for candidate in candidates:
-            if _norm_col(candidate) in norm:
+
+    # 2. Conservative partial match. Skip overly generic tokens.
+    generic_tokens = {"dna", "rna", "seq", "sequence", "target", "score"}
+    for candidate in candidates:
+        key = _norm_col(candidate)
+        if key in generic_tokens or len(key) < 4:
+            continue
+        for original in col_list:
+            norm = _norm_col(original)
+            if key in norm:
                 return original
     return None
 
 
 def clean_sequence(seq: object, keep_length: int = 20) -> str:
-    """Clean guide/target sequences and return first keep_length nucleotides."""
+    """Clean guide/target sequences and return first keep_length nucleotides.
+
+    Many public off-target resources store 20 nt spacers plus PAM, or include gap
+    characters for indels. This baseline adapter removes gap characters, converts
+    U to T, and keeps the first 20 nucleotides so the existing feature encoder can
+    be reused.
+    """
     if pd.isna(seq):
         return ""
     s = str(seq).strip().upper().replace("U", "T")
@@ -79,6 +178,24 @@ def infer_mapping(
     target = target_col or find_column(df.columns, TARGET_CANDIDATES)
     label = label_col or find_column(df.columns, LABEL_CANDIDATES)
     score = score_col or find_column(df.columns, SCORE_CANDIDATES)
+
+    # Fallback: if candidate names fail, select sequence-like columns by content.
+    # This is useful for public tables with unusual column names.
+    if guide is None or target is None:
+        sequence_like = []
+        for col in df.columns:
+            if not _is_sequence_like_name(str(col)):
+                continue
+            frac = _sequence_like_fraction(df[col])
+            if frac >= 0.8:
+                sequence_like.append((col, frac))
+        if guide is None and sequence_like:
+            guide = sequence_like[0][0]
+        if target is None and len(sequence_like) >= 2:
+            for col, _frac in sequence_like:
+                if col != guide:
+                    target = col
+                    break
 
     if guide is None:
         raise ValueError(
@@ -123,7 +240,13 @@ def standardize_public_dataset(
     min_length: int = 20,
 ) -> pd.DataFrame:
     """Convert a public CRISPR off-target table to sample_id,source,sgRNA,target,label."""
-    mapping = infer_mapping(df, guide_col=guide_col, target_col=target_col, label_col=label_col, score_col=score_col)
+    mapping = infer_mapping(
+        df,
+        guide_col=guide_col,
+        target_col=target_col,
+        label_col=label_col,
+        score_col=score_col,
+    )
     positives = {str(x).strip().lower() for x in positive_values}
     negatives = {str(x).strip().lower() for x in negative_values}
 
@@ -145,7 +268,8 @@ def standardize_public_dataset(
 
     if all(v is None for v in labels):
         raise ValueError(
-            "Could not infer labels. Provide --label-col with binary labels, or --score-col with --score-threshold."
+            "Could not infer labels. Provide --label-col with binary labels, or "
+            "--score-col with --score-threshold."
         )
 
     out["label"] = labels
