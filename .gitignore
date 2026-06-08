@@ -11,3 +11,5 @@ reports/*.html
 data/processed/*.csv
 
 *.egg-info/
+
+results/public_benchmark/
