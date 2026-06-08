@@ -13,3 +13,9 @@ data/processed/*.csv
 *.egg-info/
 
 results/public_benchmark/
+
+data/raw/*
+
+!data/raw/README.md
+
+results/tsai_guideseq_2015_benchmark/
