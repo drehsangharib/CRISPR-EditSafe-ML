@@ -1,0 +1,31 @@
+rule all:
+    input:
+        "reports/example_report.html"
+
+rule preprocess:
+    input:
+        "data/examples/example_offtargets.csv"
+    output:
+        "data/processed/features.csv"
+    shell:
+        "python scripts/preprocess_data.py --input {input} --output {output}"
+
+rule train:
+    input:
+        features="data/processed/features.csv",
+        config="configs/train_config.json"
+    output:
+        model="results/models/logreg_model.joblib",
+        metrics="results/metrics/logreg_metrics.json",
+        predictions="results/predictions/logreg_predictions.csv"
+    shell:
+        "python scripts/train_model.py --input {input.features} --config {input.config} --model-out {output.model} --metrics-out {output.metrics} --predictions-out {output.predictions}"
+
+rule report:
+    input:
+        metrics="results/metrics/logreg_metrics.json",
+        predictions="results/predictions/logreg_predictions.csv"
+    output:
+        "reports/example_report.html"
+    shell:
+        "python scripts/generate_report.py --metrics {input.metrics} --predictions {input.predictions} --output {output}"

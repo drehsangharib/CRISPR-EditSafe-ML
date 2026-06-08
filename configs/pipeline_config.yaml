@@ -1,0 +1,7 @@
+# Starter config for future Snakemake/Nextflow implementation
+input_training_csv: data/examples/example_offtargets.csv
+features_csv: data/processed/features.csv
+model_out: results/models/logreg_model.joblib
+metrics_out: results/metrics/logreg_metrics.json
+predictions_out: results/predictions/logreg_predictions.csv
+report_out: reports/example_report.html

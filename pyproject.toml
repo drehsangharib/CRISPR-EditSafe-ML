@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crispr-editsafe-ml"
+version = "0.1.0"
+description = "CRISPR off-target risk prediction and reproducible ML workflow"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "Ehsan Gharib"}]
+dependencies = [
+    "numpy>=1.23",
+    "pandas>=1.5",
+    "scikit-learn>=1.2",
+    "matplotlib>=3.7",
+    "joblib>=1.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "ruff>=0.4"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["crispr_editsafe*"]
+
+[tool.ruff]
+line-length = 100
