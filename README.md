@@ -162,3 +162,17 @@ python scripts/benchmark_models.py --input data/processed/public_schema_demo_sta
 ```
 
 For real public datasets, place downloaded files under `data/raw/`, then use `scripts/prepare_public_dataset.py` with explicit `--guide-col`, `--target-col`, and either `--label-col` or `--score-col` if automatic column detection is not sufficient.
+
+
+## Real public dataset workflow
+
+Version 3 adds a real-dataset workflow layer:
+
+```powershell
+python scripts/audit_public_dataset.py --input data/raw/my_public_dataset.csv --output reports/my_public_dataset_audit.json --source-name my_public_dataset
+python scripts/prepare_public_dataset.py --input data/raw/my_public_dataset.csv --output data/processed/my_public_dataset_standardized.csv --source-name my_public_dataset --guide-col "on_seq" --target-col "off_seq" --score-col "CRISPR_Net_score" --score-threshold 0.1
+python scripts/benchmark_models.py --input data/processed/my_public_dataset_standardized.csv --output-dir results/my_public_dataset_benchmark --models logistic_regression random_forest
+python scripts/generate_benchmark_report.py --benchmark-dir results/my_public_dataset_benchmark --output reports/my_public_dataset_benchmark_report.md
+```
+
+See `docs/REAL_DATA_WORKFLOW.md` for details.

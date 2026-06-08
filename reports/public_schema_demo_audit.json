@@ -1,0 +1,73 @@
+{
+  "input": "data/examples/public_schema_demo.csv",
+  "n_rows": 10,
+  "n_columns": 4,
+  "columns": [
+    "on_seq",
+    "off_seq",
+    "CRISPR_Net_score",
+    "dataset"
+  ],
+  "dtypes": {
+    "on_seq": "str",
+    "off_seq": "str",
+    "CRISPR_Net_score": "float64",
+    "dataset": "str"
+  },
+  "head_records": [
+    {
+      "on_seq": "GAGTCCGAGCAGAAGAAGAATGG",
+      "off_seq": "GAGTCCGAGCAGAAGAAGAATGG",
+      "CRISPR_Net_score": "0.95",
+      "dataset": "schema_demo"
+    },
+    {
+      "on_seq": "GAGTCCGAGCAGAAGAAGAATGG",
+      "off_seq": "GAGTTAGAGCAGAAGAAGAAAGG",
+      "CRISPR_Net_score": "0.85",
+      "dataset": "schema_demo"
+    },
+    {
+      "on_seq": "GAGTCCGAGCAGAAGAAGAATGG",
+      "off_seq": "GAGTACGAGCAGAAGAAGAATGG",
+      "CRISPR_Net_score": "0.7",
+      "dataset": "schema_demo"
+    },
+    {
+      "on_seq": "GAGTCCGAGCAGAAGAAGAATGG",
+      "off_seq": "TTGTACGAGCAGAAGAAGAATGG",
+      "CRISPR_Net_score": "0.0",
+      "dataset": "schema_demo"
+    },
+    {
+      "on_seq": "GGCACTGCGGCTGGAGGTGGAGG",
+      "off_seq": "GGCACTGCGGCTGGAGGTGGAGG",
+      "CRISPR_Net_score": "0.88",
+      "dataset": "schema_demo"
+    }
+  ],
+  "inferred_mapping": {
+    "guide_col": "on_seq",
+    "target_col": "off_seq",
+    "label_col": null,
+    "score_col": "CRISPR_Net_score"
+  },
+  "guide_length_counts_after_cleaning": {
+    "20": 10
+  },
+  "target_length_counts_after_cleaning": {
+    "20": 10
+  },
+  "unique_guides_after_cleaning": 3,
+  "score_summary": {
+    "count": 10.0,
+    "mean": 0.535,
+    "std": 0.3990613987846983,
+    "min": 0.0,
+    "25%": 0.11,
+    "50%": 0.6599999999999999,
+    "75%": 0.8725,
+    "max": 0.95
+  },
+  "suggested_prepare_command": "python scripts/prepare_public_dataset.py --input data/examples/public_schema_demo.csv --output data/processed/public_schema_demo_standardized.csv --source-name public_schema_demo --guide-col \"on_seq\" --target-col \"off_seq\" --score-col \"CRISPR_Net_score\" --score-threshold 0.0"
+}

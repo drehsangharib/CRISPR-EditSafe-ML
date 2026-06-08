@@ -1,0 +1,22 @@
+{
+  "crisprofft": {
+    "name": "CRISPRoffT",
+    "url": "https://ccsm.uth.edu/CRISPRoffT/",
+    "notes": "Comprehensive database of predicted and validated CRISPR/Cas off-targets. Download manually from the database website, then audit with scripts/audit_public_dataset.py."
+  },
+  "crispr_net_github": {
+    "name": "CRISPR-Net GitHub",
+    "url": "https://github.com/JasonLinjc/CRISPR-Net",
+    "notes": "CRISPR-Net uses on-target/off-target sequence-pair style inputs and scores. Useful schema style: on_seq, off_seq, CRISPR_Net_score."
+  },
+  "public_data_crisprcas9": {
+    "name": "public_data_crisprCas9",
+    "url": "https://github.com/dagrate/public_data_crisprCas9",
+    "notes": "Curated references and direct links for CRISPR/Cas9 on/off-target benchmark datasets, including encoded benchmark files and public off-target resources."
+  },
+  "tsai_validated_offtargets": {
+    "name": "Tsai validated off-targets TSV link listed by public_data_crisprCas9",
+    "url": "http://bio.info.uqam.ca/data/tsai_validated_offtargets.tsv",
+    "notes": "Use only if accessible and license/usage terms permit. Audit columns before standardization."
+  }
+}
