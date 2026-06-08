@@ -19,3 +19,6 @@ data/raw/*
 !data/raw/README.md
 
 results/tsai_guideseq_2015_benchmark/
+
+results/tsai_guideseq_2015_cnn/
+*.pt

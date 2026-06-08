@@ -181,3 +181,17 @@ See `docs/REAL_DATA_WORKFLOW.md` for details.
 ## Public-data inference notes
 
 The public-data adapter prioritizes biologically meaningful CRISPR sequence columns such as `guideSeq`, `otSeq`, `on_seq`, and `off_seq`, and activity columns such as `readFraction`. Numeric metadata fields such as mismatch counts, bulge counts, and guide specificity scores should not be inferred as sequence columns.
+
+
+## Optional PyTorch CNN model
+
+Version 5 adds an optional lightweight PyTorch 1D CNN for CRISPR guide/off-target sequence-pair learning. The CNN encodes each pair as an `11 x 20` matrix containing guide one-hot channels, target one-hot channels, and a mismatch channel.
+
+Example:
+
+```powershell
+pip install torch
+python scripts/train_cnn_model.py --input data/processed/tsai_guideseq_2015_standardized.csv --output-dir results/tsai_guideseq_2015_cnn --epochs 20 --batch-size 64 --learning-rate 0.001 --patience 5
+```
+
+The CNN model is optional; the core project still runs with scikit-learn only.
