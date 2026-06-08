@@ -144,3 +144,21 @@ Recommended extensions:
 ## License
 
 MIT License.
+
+
+## Public dataset support
+
+Version 2 adds a public-data adapter for CRISPR off-target benchmark tables. The adapter converts CSV/TSV/XLSX files from public resources into the internal schema:
+
+```text
+sample_id,source,sgRNA,target,label
+```
+
+Example:
+
+```powershell
+python scripts/prepare_public_dataset.py --input data/examples/public_schema_demo.csv --output data/processed/public_schema_demo_standardized.csv --source-name public_schema_demo --score-col CRISPR_Net_score --score-threshold 0.1
+python scripts/benchmark_models.py --input data/processed/public_schema_demo_standardized.csv --output-dir results/public_benchmark --models logistic_regression random_forest
+```
+
+For real public datasets, place downloaded files under `data/raw/`, then use `scripts/prepare_public_dataset.py` with explicit `--guide-col`, `--target-col`, and either `--label-col` or `--score-col` if automatic column detection is not sufficient.

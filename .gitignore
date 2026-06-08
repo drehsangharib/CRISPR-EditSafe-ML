@@ -9,3 +9,5 @@ results/**/*.csv
 results/**/*.json
 reports/*.html
 data/processed/*.csv
+
+*.egg-info/
